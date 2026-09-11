@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Match de catálogo Meta — visão diária por evento</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Meta Commerce · catálogo</div>
+  <h1>Match de catálogo, dia a dia e por evento</h1>
+  <p class="lede">O Commerce Manager mostra D-3 agregado. Aqui a série vem crua da Graph API:
+  match por <b>dia × evento × fonte</b>.</p>
+
+  <!-- ============================================================ form -->
+  <section id="form-section">
+    <h2>Coleta</h2>
+    <p class="lede">O token fica só na memória do processo local durante a requisição — não é
+    gravado em disco nem em log.</p>
+
+    <form id="collect-form" autocomplete="off">
+      <div class="grid-form">
+        <div>
+          <label for="catalog_id">Catalog ID</label>
+          <input type="text" id="catalog_id" name="catalog_id" inputmode="numeric" placeholder="1234567890123456" required>
+        </div>
+        <div>
+          <label for="access_token">Access token</label>
+          <input type="password" id="access_token" name="access_token" placeholder="EAAG..." required>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="primary" id="btn-collect">Buscar na Graph API</button>
+        <span id="collect-status" class="mut"></span>
+      </div>
+    </form>
+
+    <div id="collect-error" class="callout no-c hidden"></div>
+
+    <div class="callout warn">
+      <strong>Limite da API, não do app:</strong> a edge <code>event_stats</code> não aceita filtro
+      de data — ela devolve uma janela fixa de ~28 dias. Você recorta à vontade dentro dela, mas uma
+      coleta só não alcança meses atrás.
+    </div>
+  </section>
+
+  <!-- ========================================================== filtros -->
+  <div class="filters hidden" id="filters">
+    <div>
+      <label for="f-from">De</label>
+      <input type="date" id="f-from">
+    </div>
+    <div>
+      <label for="f-to">Até</label>
+      <input type="date" id="f-to">
+    </div>
+    <div>
+      <label for="f-event">Evento</label>
+      <select id="f-event"><option value="">todos</option></select>
+    </div>
+    <div>
+      <label for="f-source">Fonte</label>
+      <select id="f-source"><option value="">todas</option></select>
+    </div>
+    <div>
+      <label for="f-threshold">Limiar de match (%)</label>
+      <input type="number" id="f-threshold" value="90" min="0" max="100" step="1">
+    </div>
+    <div class="f-full">
+      <span>Fontes:</span>
+      <span class="seg" role="group" aria-label="Fontes de evento">
+        <button type="button" id="src-split" aria-pressed="true">Separar</button>
+        <button type="button" id="src-sum" aria-pressed="false">Somar</button>
+      </span>
+      <button type="button" id="btn-reset">limpar filtros</button>
+      <button type="button" id="btn-new">nova coleta</button>
+      <span class="mut" id="filter-summary"></span>
+    </div>
+  </div>
+
+  <!-- ==================================================== estado/avisos -->
+  <section id="s-state" class="hidden">
+    <h2>Estado da coleta</h2>
+    <div id="state-body"></div>
+  </section>
+
+  <!-- ============================================================= KPIs -->
+  <section id="s-kpi" class="hidden">
+    <h2>Resumo do recorte</h2>
+    <p class="lede">Match rate = <code>matched / (matched + unmatched)</code> dos content_ids
+    recebidos pelas fontes do catálogo.</p>
+    <div class="tiles" id="kpi-tiles"></div>
+    <div id="kpi-sources"></div>
+    <div id="kpi-alerts"></div>
+  </section>
+
+  <!-- =================================================== small multiples -->
+  <section id="s-series" class="hidden">
+    <h2>Match diário por evento</h2>
+    <p class="lede">Um painel por evento — é assim que dá pra ver <em>qual</em> evento quebrou e
+    <em>em que dia</em>. Com <b>Separar</b> ligado, cada fonte de evento é uma linha própria:
+    um pixel quebrado enquanto o outro vai bem some na soma. Pontos em vermelho estão abaixo
+    do seu limiar.</p>
+    <div id="series-legend"></div>
+    <div class="sm" id="series-panels"></div>
+  </section>
+
+  <!-- ========================================================== heatmap -->
+  <section id="s-heat" class="hidden">
+    <h2>Mapa data × evento</h2>
+    <p class="lede">Match rate por célula. Serve para bater o olho e achar o dia da quebra.
+    Contorno vermelho = abaixo do limiar.</p>
+    <div class="heat-wrap" id="heat-wrap"></div>
+    <div class="scale-legend" id="heat-legend"></div>
+  </section>
+
+  <!-- =========================================================== tabela -->
+  <section id="s-table" class="hidden">
+    <h2>Detalhe por dia × evento × fonte</h2>
+    <p class="lede">Mesma informação dos gráficos em números — clique no cabeçalho para ordenar.
+    A coluna <b>outro catálogo</b> é sintoma clássico de pixel apontando para o catálogo errado.</p>
+    <div class="tw" id="table-wrap"></div>
+  </section>
+
+  <div class="foot">
+    MetaCatalogMatch · roda local · dados direto da Graph API
+  </div>
+</div>
+
+<div id="tooltip" class="hidden" role="status" aria-live="polite"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
